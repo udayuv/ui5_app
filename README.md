@@ -1,7 +1,7 @@
 ## Step 1: Hello World!
 
-- Create a folder on your local machine which will contain all the sources of the `app` we're going to build. We'll refer to this folder as the “app root folder”.
-- Create a new file called `package.json` which will enable you to execute commands and consume packages from the npm registryInformation published on non SAP site via the npm command line interface. Enter the following content:
+1. Create a folder on your local machine which will contain all the sources of the `app` we're going to build. We'll refer to this folder as the “app root folder”.
+2. Create a new file called `package.json` which will enable you to execute commands and consume packages from the npm registryInformation published on non SAP site via the npm command line interface. Enter the following content:
 
 ```json
 {
@@ -16,9 +16,9 @@
   }
   
 ```
-- Create a new folder named `webapp` in the app root folder. It will contain all the sources that become available in the browser later. We'll refer to this folder as the "webapp folder".
+3. Create a new folder named `webapp` in the app root folder. It will contain all the sources that become available in the browser later. We'll refer to this folder as the "webapp folder".
 
-- Create a new HTML file named `index.html` in your webapp folder and enter the following content:
+4. Create a new HTML file named `index.html` in your webapp folder and enter the following content:
 
 ```html
 <!DOCTYPE html>
@@ -33,7 +33,7 @@
 </html>
 ```
 
-- Create a new file named `manifest.json` in the `webapp` folder, it's also known as the `app descriptor`. All application-specific configuration options which we'll introduce in this tutorial will be added to this file. Enter the following content:
+5. Create a new file named `manifest.json` in the `webapp` folder, it's also known as the `app descriptor`. All application-specific configuration options which we'll introduce in this tutorial will be added to this file. Enter the following content:
 
 ```json
 {
@@ -43,9 +43,69 @@
   }
 }
 ```
-- Open a terminal in the app root folder and execute `npm i -D @ui5/cli` to install UI5 Tooling.
+6. Open a terminal in the app root folder and execute `npm i -D @ui5/cli` to install UI5 Tooling.
 
-- Execute `ui5 init` in the app root folder, this will create the `ui5.yaml` file in app root.
-- If you get error `zsh: command not found: ui5` then install ui5 cli globally `npm install --global @ui5/cli` and then do `ui5 init` 
+7. Execute `ui5 init` in the app root folder, this will create the `ui5.yaml` file in app root.
+8. If you get error `zsh: command not found: ui5` then install ui5 cli globally `npm install --global @ui5/cli` and then do `ui5 init` 
 
-- Execute `npm start` to start the web server and to open a new browser window hosting your newly created index.html.
+9. Execute `npm start` to start the web server and to open a new browser window hosting your newly created index.html.
+
+## Step 2: Bootstrap
+
+Before we can do something with SAPUI5, we need to load and initialize it. This process of loading and initializing SAPUI5 is called bootstrapping. Once this bootstrapping is finished, we simply display an alert.
+
+### UI5 Tooling
+First, let's enhance your UI5 Tooling setup:
+
+1. Open a terminal from the app root folder.
+2. Execute `ui5 use OpenUI5` to add the framework name in ui5.yaml
+3. Execute `ui5 add sap.ui.core sap.m themelib_sap_horizon` to add the libraries in ui5.yaml file.
+   
+`webapp/index.html`
+```html
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>UI5 Walkthrough</title>
+	<script
+		id="sap-ui-bootstrap"
+		src="resources/sap-ui-core.js"
+		data-sap-ui-theme="sap_horizon"
+		data-sap-ui-libs="sap.m"
+		data-sap-ui-compat-version="edge"
+		data-sap-ui-async="true"
+		data-sap-ui-on-init="module:ui5/walkthrough/index"
+		data-sap-ui-resource-roots='{
+			"ui5.walkthrough": "./"
+		}'>
+
+	</script>
+</head>
+<body>
+<div>Hello World</div>
+</body>
+</html>
+```
+
+In this step, we load the SAPUI5 framework from the webserver provided by UI5 Tooling and initialize the core modules with the following configuration options:
+
+- The id attribute of the `<script>` tag has to be exactly "sap-ui-bootstrap" to ensure proper booting of the SAPUI5 runtime.
+- The src attribute of the `<script>` tag tells the browser where to find the SAPUI5 core library – it initializes the SAPUI5 runtime and loads additional resources, such as the libraries specified in the data-sap-ui-libs attribute.
+- The SAPUI5 controls support different themes. We choose **sap_horizon** as our default theme.
+- We specify the required UI library **sap.m**, which contains the UI controls we need for this tutorial
+- To make use of the most recent functionality of SAPUI5 we define the compatibility version as **edge**
+- We configure the bootstrapping process to run **asynchronously**. This means that the SAPUI5 resources can be loaded simultaneously in the background for performance reasons.
+- We define the module to be loaded initially in a declarative way. With this, we avoid directly executable JavaScript code in the HTML file. This makes your app more secure. We'll create the script that this refers to further down in this step.
+- We tell SAPUI5 core that resources in the ui5.walkthrough namespace are located in the same folder as index.html.
+
+`webapp/index.js`
+```js
+sap.ui.define([], () => {
+	"use strict";
+	alert("UI5 is ready");
+});
+```
+
+Now we create a new **index.js** script that contains the application logic for this tutorial step. We do this to avoid having executable code directly in the HTML file for security reasons. This script will be called from index.html. We defined it there as a module in a declarative way.
+
