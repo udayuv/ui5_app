@@ -109,3 +109,32 @@ sap.ui.define([], () => {
 
 Now we create a new **index.js** script that contains the application logic for this tutorial step. We do this to avoid having executable code directly in the HTML file for security reasons. This script will be called from index.html. We defined it there as a module in a declarative way.
 
+## Step 3: Controls
+
+Now it is time to build our first little UI by replacing the “Hello World” text in the HTML body by the SAPUI5 control sap/m/Text. In the beginning, we will use the JavaScript control API to set up the UI, the control instance is then placed into the HTML body.
+
+In `webapp/index.html` we will replace the body content with below code
+
+```html
+<body class="sapUiBody" id="content">
+```    
+The class **sapUiBody** adds additional theme-dependent styles for displaying SAPUI5 apps.
+
+Now replace `webapp/index.js` content with below code
+
+```js
+sap.ui.define(["sap/m/Text"], (Text) => {
+	"use strict";
+	new Text({
+		text: "Hello World"
+	}).placeAt("content");
+});
+```
+
+1. The `sap.ui.define` function take two arguments: an array of dependencies and a callback function. In this case, the dependency is the `sap/m/Text` module, which is a UI control in SAPUI5 used to display text. The callback function receives the `Text` module as an argument, allowing you to use it within the function.
+2. Inside the callback function, the "use strict;" directive is used to enable strict mode, which helps catch common coding errors and improve performance
+3. A new instance of the `Text` control is created with the `new Text()` contstuctor. 
+4. The contructor takes an object as an argument, where the `text` property is set to "Hello World".
+5. Finally the `placeAt` method is called on the `Text` instance with the argument "content". This method places the text control into the HTML element with the ID `content`.
+6. This means that when the module is loaded, the text "Hello World" will be displayed in the specified HTML element on the web page.
+
