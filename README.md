@@ -262,5 +262,62 @@ sap.ui.define([
 - Use *sap.ui.require* for asynchronously loading dependencies but without declaring a namespace, for example code that just needs to be executed, but does not need to be called from other code.
 - Use the name of the artifact to load for naming the function parameters (without namespace).
 
+## Step 7: JSON Model
+
+Now that we have set up the view and controller, it’s about time to think about the **M** in *MVC*.
+We will add an input field to our app, bind its value to the model, and bind the same value to the description of the input field. The description will be directly updated as the user types.
+
+`webapp/controller/App.controller.js`
+```js
+sap.ui.define([
+   "sap/ui/core/mvc/Controller",
+   "sap/m/MessageToast",
+   "sap/ui/model/json/JSONModel"
+], (Controller, MessageToast, JSONModel) => {
+   "use strict";
+
+   return Controller.extend("ui5.walkthrough.controller.App", {
+      onInit() {
+         // set data model on view
+         const oData = {
+            recipient : {
+               name : "World"
+            }
+         };
+         const oModel = new JSONModel(oData);
+         this.getView().setModel(oModel);
+      },
+
+      onShowHello() {
+         MessageToast.show("Hello World");
+      }
+   });
+});
+```
+1. We add an **onInit** function to the controller. This is one of SAPUI5’s lifecycle methods that is invoked by the framework when the controller is created, similar to the constructor of a control.
+2. Inside the function we instantiate a JSON model. The data for the model only contains a single property for the **“recipient”**, and inside this it also contains one additional property for the **name**.
+3. To be able to use this model from within the XML view, we call the *setModel* function on the view and pass on our newly created model. The model is now set on the view.
+4. The message toast is just showing the static "Hello World" message. We will show how to load a translated text here in the next step.
+
+`webapp/view/App.view.xml`
+```xml
+<mvc:View
+   controllerName="ui5.walkthrough.controller.App"
+   xmlns="sap.m"
+   xmlns:mvc="sap.ui.core.mvc">
+   <Button
+      text="Say Hello"
+      press=".onShowHello"/>
+   <Input
+      value="{/recipient/name}"
+      description="Hello {/recipient/name}"
+      valueLiveUpdate="true"
+      width="60%"/>
+</mvc:View>
+```
+We add an **sap/m/Input** control to the view. With this, the user can enter a recipient for the greetings. We bind its value to a SAPUI5 model by using the declarative binding syntax for XML views:
+1. The curly brackets **{…}** indicate that data is taken from the value of the recipient's object name property. This is called **"data binding"**.
+2. **/recipient/name** declares the path in the model.
+
 
 
