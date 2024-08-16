@@ -138,3 +138,50 @@ sap.ui.define(["sap/m/Text"], (Text) => {
 5. Finally the `placeAt` method is called on the `Text` instance with the argument "content". This method places the text control into the HTML element with the ID `content`.
 6. This means that when the module is loaded, the text "Hello World" will be displayed in the specified HTML element on the web page.
 
+## Step 4: XML Views
+
+Putting all our UI into the `index.js` file will very soon result in a messy setup, and there is quite a bit of work ahead of us. So let’s do a first modularization by putting the `sap/m/Text` control into a dedicated view.
+
+SAPUI5 supports multiple view types (XML, HTML, JavaScript). When working with UI5, we recommend the use of XML, as this produces the most readable code and will force us to separate the view declaration from the controller logic. Yet the look of our UI will not change.
+
+1. `webapp/view/App.view.xml` We create a new `view` folder in our webapp folder and a new file called `App.view.xml` inside this folder. 
+2. The root node of the XML structure is the **View**. 
+3. Here, we reference the default namespace **sap.m** where the majority of our UI assets are located. 
+4. We define an additional **sap.ui.core.mvc** namespace with alias **mvc**, where the SAPUI5 views and all other Model-View-Controller (MVC) assets are located.
+```xml
+<mvc:View
+   xmlns="sap.m"
+   xmlns:mvc="sap.ui.core.mvc">
+</mvc:View>
+```
+
+**Note** : The namespace identifies all resources of the project and has to be unique. If you develop your own application code or controls, you cannot use the namespace prefix sap, because this namespace is reserved for SAP resources. Instead, simply define your own unique namespace (for example, myCompany.myApp).
+
+5. `webapp/view/App.view.xml` Inside the **View** tag, we add the declarative definition of our **text** control with the same properties as in the previous step. 
+6. The XML tags are mapped to controls, and the attributes are mapped to control properties.
+
+<mvc:View
+   xmlns="sap.m"
+   xmlns:mvc="sap.ui.core.mvc">
+   <Text text="Hello World"/>
+</mvc:View>
+
+7. We replace the instantiation of the `sap/m/Text `control by our new `App.view.xml` file. The view is created by a factory function of SAPUI5. 
+8. The name is prefixed with the namespace **ui5.walkthrough.view** in order to uniquely identify this resource, which is already given in manifest.json as unique id
+```js
+sap.ui.define(["sap/ui/core/mvc/XMLView"], (XMLView) => {
+	"use strict";
+
+	XMLView.create({
+		viewName: "ui5.walkthrough.view.App"
+	}).then((oView) => oView.placeAt("content"));
+});
+```
+### Conventions
+View names are capitalized
+
+- All views are stored in the **view** folder
+- Names of XML views always end with ***.view.xml**
+- The default XML namespace is **sap.m**
+- Other XML namespaces use the last part of the SAP namespace as alias (for example, mvc for sap.ui.core.mvc)
+
