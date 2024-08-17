@@ -319,5 +319,98 @@ We add an **sap/m/Input** control to the view. With this, the user can enter a r
 1. The curly brackets **{…}** indicate that data is taken from the value of the recipient's object name property. This is called **"data binding"**.
 2. **/recipient/name** declares the path in the model.
 
+## Step 8: Translatable Texts
 
+In this step we move the texts of our UI to a separate resource file.
+
+`webapp/i18n/i18n.properties (New)`
+```js
+showHelloButtonText=Say Hello
+helloMsg=Hello {0}
+```
+1. We create the folder webapp/i18n and the file i18n.properties inside. 
+2. The resolved bundle name is ui5.walkthrough.i18n, as we will see later. 
+3. The properties file for texts contains name-value pairs for each element. You can add any number of parameters to the texts by adding numbers in curly brackets to them. These numbers correspond to the sequence in which the parameters are accessed (starting with 0).
+
+In this tutorial we will only have one properties file. However, in real-world projects, you would have a separate file for each supported language with a suffix for the locale, for example i18n_de.properties for German, i18n_en.properties for English, and so on. When a user runs the app, SAPUI5 will load the language file that fits best to the user's environment.
+
+
+`controller/App.controller.js`
+
+```js
+sap.ui.define([
+   "sap/ui/core/mvc/Controller",
+   "sap/m/MessageToast",
+   "sap/ui/model/json/JSONModel",
+   "sap/ui/model/resource/ResourceModel"
+], (Controller, MessageToast, JSONModel, ResourceModel) => {
+   "use strict";
+
+   return Controller.extend("ui5.walkthrough.controller.App", {
+     onInit() {
+         // set data model on view
+         const oData = {
+            recipient : {
+               name : "World"
+            }
+         };
+         const oModel = new JSONModel(oData);
+         this.getView().setModel(oModel);
+
+         // set i18n model on view
+         const i18nModel = new ResourceModel({
+            bundleName: "ui5.walkthrough.i18n.i18n"
+         });
+         this.getView().setModel(i18nModel, "i18n");
+      },
+
+      onShowHello() {
+         // read msg from i18n model
+         const oBundle = this.getView().getModel("i18n").getResourceBundle();
+         const sRecipient = this.getView().getModel().getProperty("/recipient/name");
+         const sMsg = oBundle.getText("helloMsg", [sRecipient]);
+
+         // show message
+         MessageToast.show(sMsg);
+      }
+   });
+});
+```
+
+1. In the `onInit` function we instantiate the `ResourceModel` that points to the new message bundle file where our texts are now located (i18n.properties file). 
+2. The bundle name `ui5.walkthrough.i18n.i18n` consists of the application namespace ui5.walkthrough (the application root as defined in the index.html), the folder name i18n and finally the file name i18n without extension. 
+3. The SAPUI5 runtime calculates the correct path to the resource; in this case the path to our i18n.properties file. 
+4. Next, the model instance is set on the view as a named model with the key i18n. You use named models when you need to have several models available in parallel.
+5. In the onShowHello event handler function we access the i18n model to get the text from the message bundle file and replace the placeholder {0} with the recipient from our data model. 
+6. The getProperty method can be called in any model and takes the data path as an argument. In addition, the resource bundle has a specific getText method that takes an array of strings as second argument.
+7. The resource bundle can be accessed with the getResourceBundle method of a ResourceModel. 
+8. Rather than concatenating translatable texts manually, we can use the second parameter of getText to replace parts of the text with non-static data. During runtime, SAPUI5 tries to load the correct i18n_*.properties file based on your browser settings and your locale. 
+9. In our case we have only created one i18n.properties file to make it simple. However, you can see in the network traffic of your browser’s developer tools that SAPUI5 tries to load one or more i18n_*.properties files before falling back to the default i18n.properties file.
+
+`webapp/view/App.view.xml`
+```xml
+<mvc:View
+   controllerName="ui5.walkthrough.controller.App"
+   xmlns="sap.m"
+   xmlns:mvc="sap.ui.core.mvc">
+   <Button
+      text="{i18n>showHelloButtonText}"
+      press=".onShowHello"/>
+   <Input
+      value="{/recipient/name}"
+      description="Hello {/recipient/name}"
+      valueLiveUpdate="true"
+      width="60%"/>
+</mvc:View>
+```
+
+In the XML view, we use data binding to connect the button text to the showHelloButtonText property in the i18n model. A resource bundle is a flat structure, therefore the preceding slash (/) can be omitted for the path.
+
+### Conventions
+The resource model for internationalization is called the i18n model.
+- The default filename is i18n.properties.
+- Resource bundle keys are written in (lower) camelCase.
+- Resource bundle values can contain parameters like {0}, {1}, {2}, …
+- Never concatenate strings that are translated, always use placeholders.
+- Use Unicode escape sequences for special characters.
 
