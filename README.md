@@ -787,5 +787,36 @@ The shell control is now the outermost control of our app and automatically disp
 
 There are further options to customize the shell, like setting a custom background image or color and setting a custom logo. Check the related API [reference](https://ui5.sap.com/#/api/sap.m.Shell%23constructor) for more details. For example: `<Shell backgroundColor='red'>`
 
+## Step 13: Margins and Paddings
+
+Our app content is still glued to the corners of the letterbox. To fine-tune our layout, we can add margins and paddings to the controls that we added in the previous step.
+Instead of manually adding CSS to the controls, we will use the standard classes provided by SAPUI5. These classes take care of consistent sizing steps, left-to-right support, and responsiveness.
+
+`webapp/view/App.view.xml`
+- To layout the panel, we add the CSS class `sapUiResponsiveMargin` that will add some space around the panel. We have to set the width of the panel to auto since the margin would otherwise be added to the default width of 100% and exceed the page size.
+```xml
+<Panel
+   headerText="{i18n>helloPanelTitle}"
+   class="sapUiResponsiveMargin"
+   width="auto">
+```
+- If you decrease the screen size, then you can actually see that the margin also decreases. As the name suggests, the margin is responsive and adapts to the screen size of the device. Tablets will get a smaller margin and phones in portrait mode will not get a margin to save space on these small screens.
+- Margins can be added to all kinds of controls and are available in many different options. We can even add space between the button and the input field by adding class `sapUiSmallMarginEnd` to the button.
+```xml
+<Button
+   text="{i18n>showHelloButtonText}"
+   press=".onShowHello"
+   class="sapUiSmallMarginEnd"/>
+```
+- To format the output text individually, we remove the description from the input field and add a new `Text` control with the same value. Here we also use a small margin to align it with the other content. 
+- Similarly, we could add the standard padding classes to layout the inner parts of container controls such as our panel, but as it already brings a padding by default, this is not needed here.
+```xml
+<Text
+   text="Hello {/recipient/name}"
+   class="sapUiSmallMargin"/>
+```
+
+### Conventions
+- Use the standard SAPUI5 CSS classes for the layout if possible.
 
 
