@@ -546,3 +546,167 @@ We now create a `ComponentContainer` instead of the view in our `index.js` that 
 - Together with all UI assets of the app, the component is located in the `webapp` folder.
 - The `index.html` file is located in the `webapp` folder if it is used productively.
 
+## Step 10: Descriptor for Applications
+
+- All application-specific configuration settings will now further be put in a separate descriptor file called manifest.json.
+- This clearly separates the application coding from the configuration settings and makes our app even more flexible. For example, all SAP Fiori applications are realized as components and come with a descriptor file in order to be hosted in the SAP Fiori launchpad.
+- The SAP Fiori launchpad acts as an application container and instantiates the app without having a local HTML file for the bootstrap. Instead, the descriptor file will be parsed and the component is loaded into the current HTML page. This allows several apps to be displayed in the same context. 
+- Each app can define local settings, such as language properties, supported devices, and more. 
+- And we can also use the descriptor file to load additional resources and instantiate models like our i18n resource bundle.
+
+`webapp/manifest.json (New)`
+```json
+{
+  "_version": "1.58.0",
+  "sap.app": {
+	"id": "ui5.walkthrough",
+	"i18n": "i18n/i18n.properties",
+	"title": "{{appTitle}}",
+	"description": "{{appDescription}}",
+	"type": "application",
+	"applicationVersion": {
+	  "version": "1.0.0"
+	}
+  },
+  "sap.ui": {
+	"technology": "UI5",
+	"deviceTypes": {
+		"desktop": true,
+		"tablet": true,
+		"phone": true
+	}
+  },
+  "sap.ui5": {
+	"dependencies": {
+	  "minUI5Version": "1.108.0",
+	  "libs": {
+		"sap.ui.core": {},
+		"sap.m": {}
+	  }
+	},
+	"models": {
+	  "i18n": {
+		"type": "sap.ui.model.resource.ResourceModel",
+		"settings": {
+		  "bundleName": "ui5.walkthrough.i18n.i18n",
+		  "supportedLocales": [""],
+		  "fallbackLocale": ""
+		}
+	  }
+	},
+	"rootView": {
+		"viewName": "ui5.walkthrough.view.App",
+		"type": "XML",
+		"id": "app"
+	}
+  }
+}
+```
+
+**Note** : In this tutorial, we only introduce the most important settings and parameters of the descriptor file. In some development environments you may get validation errors because some settings are missing - you can ignore those in this context.
+
+The content of the `manifest.json` file is a configuration object in JSON format that contains all global application settings and parameters. The manifest file is called the descriptor for applications, components, and libraries and is also referred to as “descriptor” or “app descriptor” when used for applications. It is stored in the webapp folder and read by SAPUI5 to instantiate the component. There are three important sections defined by namespaces in the manifest.json file:
+
+**sap.app**
+```json
+"sap.app": {
+	"id": "ui5.walkthrough",
+	"i18n": "i18n/i18n.properties",
+	"title": "{{appTitle}}",
+	"description": "{{appDescription}}",
+	"type": "application",
+	"applicationVersion": {
+	  "version": "1.0.0"
+	}
+```
+- The sap.app namespace contains the following application-specific attributes:
+  - *id* (mandatory): The namespace of our application component. The ID must not exceed 70 characters. It must be unique and must correspond to the component ID/namespace.
+  - *type*: Defines what we want to configure; here: an application.
+  - *i18n*: Defines the path to the resource bundle file. The supportedLocales and fallbackLocale properties are set to empty strings, as our demo app uses only one i18n.properties file for simplicity and we'd like to prevent the browser from trying to load additional i18n_*.properties files based on your browser settings and your locale.
+  - *title*: Title of the application in handlebars syntax referenced from the app's resource bundle.
+  - *description*: Short description text what the application does in handlebars syntax referenced from the app's resource bundle.
+  - *applicationVersion*: The version of the application to be able to update the application easily later on.
+ 
+**sap.ui**
+```json
+"sap.ui": {
+	"technology": "UI5",
+	"deviceTypes": {
+		"desktop": true,
+		"tablet": true,
+		"phone": true
+	}
+  }
+``` 
+- The sap.ui namespace contributes the following UI-specific attributes:
+  - *technology*: This value specifies the UI technology; in our case we use SAPUI5
+  - *deviceTypes*: Tells what devices are supported by the app: desktop, tablet, phone (all true by default)
+
+**sap.ui5**
+```json
+"sap.ui5": {
+	"dependencies": {
+	  "minUI5Version": "1.108.0",
+	  "libs": {
+		"sap.ui.core": {},
+		"sap.m": {}
+	  },
+     "models":{....},
+     "rootView":{....}
+	}
+``` 
+- The sap.ui5 namespace adds SAPUI5-specific configuration parameters that are automatically processed by SAPUI5. The most important parameters are:
+  - *rootView*: If you specify this parameter, the component will automatically instantiate the view and use it as the root for this component
+  - *dependencies*: Here we declare the UI libraries used in the application
+  - *models*: In this section of the descriptor we can define models that will be automatically instantiated by SAPUI5 when the app starts. 
+    - Here we can now define the local resource bundle. We define the name of the model "i18n" as key and specify the bundle file by namespace. 
+    - As in the previous steps, the file with our translated texts is stored in the i18n folder and named i18n.properties. 
+    - We simply prefix the path to the file with the namespace of our app. 
+    - The manual instantiation in the app component's init method will be removed later in this step. 
+    - The supportedLocales and fallbackLocale properties are set to empty strings, as in this tutorial our demo app uses only one i18n.properties file for simplicity, and we'd like to prevent the browser from trying to load additional i18n_*.properties files based on your browser settings and your locale. 
+
+For compatibility reasons the root object and each of the sections state the descriptor version number 1.58.0 under the internal property _version. Features might be added or changed in future versions of the descriptor and the version number helps to identify the application settings by tools that read the descriptor.
+
+**Note**: Properties of the resource bundle are enclosed in two curly brackets in the descriptor. This is not a SAPUI5 data binding syntax, but a variable reference to the resource bundle in the descriptor in handlebars syntax. The referred texts are not visible in the app built in this tutorial but can be read by an application container like the SAP Fiori launchpad.
+
+`webapp\index.html`
+
+Now we declare our component in the body of our `index.html`. 
+- In the bootstrapping script of our index.html, we enable the ComponentSupport module. 
+  - `data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"` 
+- Then, we declare our component in the body via a div tag. 
+  - `<div data-sap-ui-component data-name="ui5.walkthrough" data-id="container" data-settings='{"id" : "walkthrough"}'></div>`
+- This will instantiate the component when the onInit event is executed.
+- We can delete our index.js, because the descriptor now takes care of everything.
+
+`webapp/i18n/i18n.properties`
+```
+# App Descriptor
+appTitle=Hello World
+appDescription=A simple walkthrough app that explains the most important concepts of SAPUI5
+
+# Hello Panel
+showHelloButtonText=Say Hello
+helloMsg=Hello {0}
+```
+In the resource bundle we simply add the texts for the app and add comments to separate the bundle texts semantically.
+
+`webapp/Component.js`
+
+- In the component's metadata section, we now replace the rootView property with the property key manifest and the value json.
+  - ```
+  metadata : {
+         interfaces: ["sap.ui.core.IAsyncContentCreation"],
+         manifest: "json"
+      }
+  ```
+- This defines a reference to the descriptor that will be loaded and parsed automatically when the component is instantiated. 
+- We can now completely remove the lines of code containing the model instantiation for our resource bundle. 
+- It is done automatically by SAPUI5 with the help of the configuration entries in the descriptor. 
+- We can also remove the dependency to `sap/ui/model/resource/ResourceModel` and the corresponding formal parameter ResourceModel because we will not use this inside our anonymous callback function.
+
+**Tip ->** In previous versions of SAPUI5, additional configuration settings for the app, like the service configuration, the root view, and the routing configuration, had to be added to the metadata section of the Component.js file. As of SAPUI5 version 1.30, we recommend that you define these settings in the manifest.json descriptor file. Apps and examples that were created based on an older SAPUI5 version still use the Component.js file for this purpose - so it is still supported, but not recommended.
+
+### Conventions
+- The descriptor file is named manifest.json and located in the webapp folder.
+- Use translatable strings for the title and the description of the app.
