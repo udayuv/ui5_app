@@ -770,3 +770,22 @@ helloPanelTitle=Hello World
 
 We add new key/value pairs to our text bundle for the start page title and the panel title.
 
+## Step 12: Shell Control as Container
+
+Now we use a shell control as container for our app and use it as our new root element. The shell takes care of visual adaptation of the application to the device’s screen size by introducing a so-called letterbox on desktop screens.
+
+`webapp/view/App.view.xml`
+
+```xml
+<Shell>
+   <App>...</App>
+</Shell>
+```
+The shell control is now the outermost control of our app and automatically displays a so-called letterbox, if the screen size is larger than a certain width.
+
+**Note** : We don't add the Shell control to the declarative UI definition in the XML view if apps run in an external shell, like the SAP Fiori launchpad that already has a shell around the component UI.
+
+There are further options to customize the shell, like setting a custom background image or color and setting a custom logo. Check the related API [reference](https://ui5.sap.com/#/api/sap.m.Shell%23constructor) for more details. For example: `<Shell backgroundColor='red'>`
+
+
+
