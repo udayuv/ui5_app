@@ -1082,3 +1082,48 @@ In the fragment definition,
 
 The text bundle is extended by the new text for the dialog’s close button. `dialogCloseButtonText=Ok`
 
+## Step 18: Icons
+
+Our dialog is still pretty much empty. Since SAPUI5 is shipped with a large icon font that contains more than 500 icons, we will add an icon to greet our users when the dialog is opened.
+
+`webapp/view/HelloPanel.view.xml`
+```xml
+<Button
+            id="helloDialogButton"
+            icon="sap-icon://world"
+            text="{i18n>openDialogButtonText}"
+            press=".onOpenDialog"
+            class="sapUiSmallMarginEnd"/>
+```
+
+We add an icon to the button `icon="sap-icon://world"` that opens the dialog. The `sap-icon://` protocol is indicating that an icon from the icon font should be loaded. The identifier world is the readable name of the icon in the icon font.
+
+**Tip:** You can look up other icons using the [Icon Explorer tool](https://sapui5.hana.ondemand.com/1.126.1/test-resources/sap/m/demokit/iconExplorer/webapp/index.html).
+
+To call any icon, use its name as listed in the Icon Explorer in `sap-icon://<iconname>`.
+
+`webapp/view/HelloDialog.fragment.xml`
+```xml
+<core:FragmentDefinition
+   xmlns="sap.m"
+   xmlns:core="sap.ui.core" >
+   <Dialog
+      id="helloDialog"
+      title ="Hello {/recipient/name}">
+      <content>
+         <core:Icon
+            src="sap-icon://hello-world"
+            size="8rem"
+            class="sapUiMediumMargin"/>
+      </content>
+      <beginButton>
+         ...
+      </beginButton>
+   </Dialog>
+</core:FragmentDefinition>
+```
+In the dialog fragment, we add an icon control to the content aggregation of the dialog. Luckily, the icon font also comes with a “Hello World” icon that is perfect for us here. We also define the size of the icon and set a medium margin on it.
+
+### Conventions
+- Always use icon fonts rather than images wherever possible, as they are scalable without quality loss (vector graphics) and do not need to be loaded separately.
+
