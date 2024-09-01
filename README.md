@@ -1045,3 +1045,40 @@ If the dialog fragment does not exist yet, the fragment is instantiated by calli
 `webapp/i18n/i18n.properties`
 We add a new text for the open button to the text bundle. `openDialogButtonText=Say Hello With Dialog`
 
+## Step 17: Fragment Callbacks
+
+Now that we have integrated the dialog, it's time to add some user interaction. The user will definitely want to close the dialog again at some point, so we add a button to close the dialog and assign an event handler.
+
+`webapp/controller/HelloPanel.controller.js`
+```js
+onCloseDialog() {
+			// note: We don't need to chain to the pDialog promise, since this event handler
+			// is only called from within the loaded dialog itself.
+			this.byId("helloDialog").close();
+		}
+```
+
+The event handler function is put into the same controller file, and it closes the dialog by using the `byId` function to get the dialog instance and the close function to close the dialog.
+
+`webapp/view/HelloDialog.fragment.xml`
+```xml
+<beginButton>
+   <Button
+      text="{i18n>dialogCloseButtonText}"
+      press=".onCloseDialog"/>
+</beginButton>
+```
+
+In the fragment definition, 
+- we add a button to the `beginButton` aggregation of the dialog. 
+- The press handler refers to an event handler called `.onCloseDialog`. 
+- By using the `loadFragment` function to create the fragment content, the method will be invoked there when the button is pressed. 
+- The dialog has an aggregation named beginButton as well as endButton. 
+- Placing buttons in both of these aggregations makes sure that the `beginButton` is placed before the `endButton` on the UI. 
+- What before means, however, depends on the text direction of the current language. We therefore use the terms begin and end as a synonym to “left” and “right". 
+- In languages with left-to-right direction, the beginButton will be rendered left, the endButton on the right side of the dialog footer; in right-to-left mode for specific languages the order is switched.
+
+`webapp/i18n/i18n.properties`
+
+The text bundle is extended by the new text for the dialog’s close button. `dialogCloseButtonText=Ok`
+
