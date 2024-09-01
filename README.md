@@ -267,6 +267,9 @@ sap.ui.define([
 Now that we have set up the view and controller, it’s about time to think about the **M** in *MVC*.
 We will add an input field to our app, bind its value to the model, and bind the same value to the description of the input field. The description will be directly updated as the user types.
 
+##### Why JsonModel?
+Because it is used for light weight purpose, if we want to show the static data.
+
 `webapp/controller/App.controller.js`
 ```js
 sap.ui.define([
@@ -497,6 +500,10 @@ The metadata section defines a reference to the root view, so that instead of di
 - In the init function we instantiate our data model and the i18n model like we did before in the app controller. 
 - Be aware that the models are set directly on the component and not on the root view of the component. 
 - However, as nested controls automatically inherit the models from their parent controls, the models are available on the view as well.
+
+For example: `Component.js` is at app level
+   - If Json model is defined in it, then it will directly get loaded when the app starts and will be available across the application level
+   - If we define model inside any of the controller then it will be available only in that particular framework.
 
 `webapp/controller/App.controller.js`
 
@@ -972,5 +979,69 @@ sap.ui.define([
 
 We have now moved everything out of the app view and controller. The app controller remains an empty stub for now, we will use it later to add more functionality.
 
+## Step 16: Dialogs and Fragments
 
+In this step, we will take a closer look at another element which can be used to assemble views: the fragment.
+- `Fragments` are light-weight UI parts (UI subtrees) which can be reused but do not have any controller. 
+- This means, whenever you want to define a certain part of your UI to be reusable across multiple views, or when you want to exchange some parts of a view against one another under certain circumstances (different user roles, edit mode vs read-only mode), a fragment is a good candidate, especially where no additional controller logic is required.
+- A fragment can consist of 1 to n controls. 
+- At runtime, fragments placed in a view behave similar to "normal" view content, which means controls inside the fragment will just be included into the view’s DOM when rendered. 
+- There are of course controls that are not designed to become part of a view, for example, dialogs. But even for these controls, fragments can be particularly useful, as you will see in a minute.
+
+We will now add a dialog to our app. 
+- Dialogs are special, because they open on top of the regular app content and thus do not belong to a specific view. 
+- That means the dialog must be instantiated somewhere in the controller code, but since we want to stick with the declarative approach and create reusable artifacts to be as flexible as possible, we will create an XML fragment containing the dialog. 
+- A dialog, after all, can be used in more than one view of your app.
+
+`webapp/view/HelloPanel.view.xml`
+
+```xml
+<Button
+         id="helloDialogButton"
+         text="{i18n>openDialogButtonText}"
+         press=".onOpenDialog"
+         class="sapUiSmallMarginEnd"/>
+```
+
+- We add a new button to the view to open the dialog. 
+- It simply calls an event handler function in the controller of the panel’s content view. We will need the new `id="helloDialogButton"` in [Step 28: Integration Test with OPA](https://sapui5.hana.ondemand.com/1.126.1/#/topic/9bf4dce43b7943d0909cd6c58a933589).
+- It is a good practice to set a unique ID like `helloWorldButton` to key controls of your app so that can be identified easily. 
+- If the id attribute is not specified, the OpenUI5 runtime generates unique but changing ID like "__button23" for the control. 
+- Inspect the DOM elements of your app in the browser to see the difference.
+
+`webapp/view/HelloDialog.fragment.xml (New)`
+```xml
+<core:FragmentDefinition
+   xmlns="sap.m"
+   xmlns:core="sap.ui.core">
+   <Dialog
+      id="helloDialog"
+      title="Hello {/recipient/name}"/>
+</core:FragmentDefinition>
+```
+
+We add a new XML file to declaratively define our dialog in a fragment. The fragment assets are located in the core namespace, so we add an xml namespace for it inside the FragmentDefinition tag.
+
+The syntax is similar to a view, but since fragments do not have a controller this attribute is missing. Also, the fragment does not have any footprint in the DOM tree of the app, and there is no control instance of the fragment itself (only the contained controls). It is simply a container for a set of reuse controls.
+
+`webapp/controller/HelloPanel.controller.js`
+
+```js
+async onOpenDialog() {
+            // create dialog lazily
+            this.oDialog ??= await this.loadFragment({
+                name: "ui5.walkthrough.view.HelloDialog"
+            });
+        
+            this.oDialog.open();
+        }
+```
+Using async/await, we handle the opening of the dialog asynchronously every time the event is triggered.
+
+If the dialog fragment does not exist yet, the fragment is instantiated by calling the loadFragment API. We then store the dialog on the controller instance. This allows us to reuse the dialog every time the event is triggered.
+
+**Tip:** To reuse the dialog opening and closing functionality in other controllers, you can create a new file `ui5.walkthrough.controller.BaseController`, which extends `sap.ui.core.mvc.Controller`, and put all your dialog-related coding into this controller. Now, all the other controllers can extend from `ui5.walkthrough.controller.BaseController` instead of `sap.ui.core.mvc.Controller`.        
+
+`webapp/i18n/i18n.properties`
+We add a new text for the open button to the text bundle. `openDialogButtonText=Say Hello With Dialog`
 
