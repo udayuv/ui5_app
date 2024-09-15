@@ -1332,3 +1332,79 @@ numberState="{= ${invoice>ExtendedPrice} > 50 ? 'Error' : 'Success' }"/>
 #### Conventions
 - Only use expression binding for trivial calculations.
 
+## Step 22: Custom Formatters
+
+If we want to do a more complex logic for formatting properties of our data model, we can also write a custom formatting function. We will now add a localized status with a custom formatter, because the status in our data model is in a rather technical format.
+
+`webapp/model/formatter.js (New)`
+```js
+sap.ui.define([], () => {
+	"use strict";
+
+	return {
+		statusText(sStatus) {
+			const oResourceBundle = this.getOwnerComponent().getModel("i18n").getResourceBundle();
+			switch (sStatus) {
+				case "A":
+					return oResourceBundle.getText("invoiceStatusA");
+				case "B":
+					return oResourceBundle.getText("invoiceStatusB");
+				case "C":
+					return oResourceBundle.getText("invoiceStatusC");
+				default:
+					return sStatus;
+			}
+		}
+	};
+});
+```
+
+- We create a new folder model in our app project. The new formatter file is placed in the model folder of the app, because formatters are working on data properties and format them for display on the UI. So far we did not have any model-related artifacts, except for the Invoices.json file, we will now add the folder `webapp/model` to our app. This time we do not extend from any base object but just return a JavaScript object with our formatter functions inside the `sap.ui.define` call
+- The `statusText` function gets the technical status from the data model as input parameter and returns the correct human-readable text from the resourceBundle file.
+
+**Note**: In the above example, this refers to the controller instance as soon as the formatter gets called. We access the data model via the component using `this.getOwnerComponent().getModel()` instead of using `this.getView().getModel()`. The latter call might return undefined, because the view might not have been attached to the component yet, and thus the view can't inherit a model from the component.
+
+`webapp/controller/InvoiceList.controller.js`
+```js
+sap.ui.define([
+	"sap/ui/core/mvc/Controller",
+	"sap/ui/model/json/JSONModel",
+	"../model/formatter"
+], (Controller, JSONModel, formatter) => {
+	"use strict";
+
+	return Controller.extend("ui5.walkthrough.controller.InvoiceList", {
+		formatter: formatter,
+		onInit() {
+			const oViewModel = new JSONModel({
+				currency: "EUR"
+			});
+			this.getView().setModel(oViewModel, "view");
+		}
+	});
+});
+```
+To load our formatter functions, we have to add it to the InvoiceList.controller.js. In this controller, we first add a dependency to our custom formatter module. The controller simply stores the loaded formatter functions in the local property formatter to be able to access them in the view.
+
+`webapp/view/InvoiceList.view.xml`
+```xml
+<firstStatus>
+   <ObjectStatus
+      text="{
+            path: 'invoice>Status',
+            formatter: '.formatter.statusText'
+      }"/>
+</firstStatus>
+```
+
+- We add a status using the `firstStatus` aggregation to our `ObjectListItem` that will display the status of our invoice.
+- The custom formatter function is specified with the reserved property formatter of the binding syntax. A "." in front of the formatter name means that the function is looked up in the controller of the current view. There we defined a property formatter that holds our formatter functions, so we can access it by .formatter.statusText.
+
+`webapp/i18n/i18n.properties`
+```
+invoiceStatusA=New
+invoiceStatusB=In Progress
+invoiceStatusC=Done
+```
+We add three new entries to the resource bundle that reflect our translated status texts. These texts are now displayed below the number attribute of the ObjectListItem dependent on the status of the invoice.
+
