@@ -1315,3 +1315,20 @@ To be able to access the currency code that is not part of our data model, we de
 
 #### Conventions
 - Use data types instead of custom formatters whenever possible.
+
+## Step 21: Expression Binding
+
+Sometimes the predefined types of SAPUI5 are not flexible enough and you want to do a simple calculation or formatting in the view - that is where expressions are really helpful. We use them to format our price according to the current number in the data model.
+
+`webapp/view/InvoiceList.view.xml`
+```xml
+numberState="{= ${invoice>ExtendedPrice} > 50 ? 'Error' : 'Success' }"/>
+```
+
+- We add the property `numberState` in our declarative view and introduce a new binding syntax that starts with `=` inside the brackets. This symbol is used to initiate a new binding syntax, it's called an expression and can do simple calculation logic like the ternary operator shown here.
+- The condition of the operator is a value from our data model. A model binding inside an expression binding has to be escaped with the $ sign as you can see in the code. We set the state to "Error" (the number will appear in red) if the price is higher than 50 and to "Success" (the number will appear in green) otherwise.
+- Expressions are limited to a particular set of operations that help formatting the data such as Math expression, comparisons, and such. You can look up the possible operations in the [documentation](https://ui5.sap.com/#/topic/daf6852a04b44d118963968a1239d2c0).
+
+#### Conventions
+- Only use expression binding for trivial calculations.
+
