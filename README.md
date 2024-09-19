@@ -1827,4 +1827,123 @@ For easier local development, we adjust the start script in the package.json to 
 - The script to start the MockServer is called mockserver.js.
 
 
+## Step 27: Unit Test with QUnit
+
+- Actually, every feature that we added to the app so far, would require a separate test case. 
+- We have totally neglected this so far, so let’s add a simple unit test for our custom formatter function from Step 22. 
+- We will test if the long text for our status is correct by comparing it with the texts from our resource bundle.
+
+
+#### Folder Structure for this Step
+- We add a new folder `unit` under the test folder and a `model` subfolder where we will place our formatter unit test. 
+- The folder structure matches the app structure to easily find the corresponding unit tests.
+
+`webapp/test/unit/model/formatter.js (New)`
+```js
+sap.ui.define([
+	"ui5/walkthrough/model/formatter",
+	"sap/ui/model/resource/ResourceModel",
+], (formatter, ResourceModel) => {
+	"use strict";
+
+	QUnit.module("Formatting functions", {});
+
+	QUnit.test("Should return the translated texts", (assert) => {
+        const oResourceModel = new ResourceModel({
+            bundleUrl: sap.ui.require.toUrl("ui5/walkthrough/i18n/i18n.properties"),
+            supportedLocales: [
+                ""
+            ],
+            fallbackLocale: ""
+        });
+
+        const oControllerMock = {
+            getOwnerComponent() {
+                return {
+                    getModel() {
+                        return oResourceModel;
+                    }
+                };
+            }
+        };
+
+        const fnIsolatedFormatter = formatter.statusText.bind(oControllerMock);
+
+        // Assert
+        assert.strictEqual(fnIsolatedFormatter("A"), "New", "The long text for Status A is correct");
+        assert.strictEqual(fnIsolatedFormatter("B"), "In Progress", "The long text for Status B is correct");
+        assert.strictEqual(fnIsolatedFormatter("C"), "Done", "The long text for Status C is correct");
+        assert.strictEqual(fnIsolatedFormatter("Foo"), "Foo", "The long text for Status Foo is correct");
+	});
+});
+```
+
+- We create a new `formatter.js` file under webapp/test/unit/model where the unit test for the custom formatter is implemented. The formatter file that we want to test is loaded as a dependency.
+- The formatter file just contains one `QUnit` module for our formatter function and one unit test for the formatter function. 
+- In the implementation of the statusText function that we created in Step 22, we use the translated texts when calling the formatter. 
+- As we do not want to test the UI5 binding functionality, we just use text in the test instead of a ResourceBundle.
+- Finally, we perform our assertions. We check each branch of the formatter logic by invoking the isolated formatter function with the values that we expect in the data model (A, B, C, and everything else). We strictly compare the result of the formatter function with the hard-coded strings that we expect from the resource bundle and give a meaningful error message if the test should fail.
+
+`webapp/test/unit/unitTests.qunit.html (New)`
+```html
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Unit tests for UI5 Walkthrough</title>
+	<meta charset="utf-8">
+
+	<script
+		id="sap-ui-bootstrap"
+		src="../../resources/sap-ui-core.js"
+		data-sap-ui-resource-roots='{
+			"ui5.walkthrough": "../../"
+		}'
+		data-sap-ui-async="true">
+	</script>
+
+	<link rel="stylesheet" type="text/css" href="../../resources/sap/ui/thirdparty/qunit-2.css">
+
+	<script src="../../resources/sap/ui/thirdparty/qunit-2.js"></script>
+	<script src="../../resources/sap/ui/qunit/qunit-junit.js"></script>
+
+	<script src="unitTests.qunit.js"></script>
+</head>
+<body>
+	<div id="qunit"/>
+	<div id="qunit-fixture"/>
+</body>
+</html>
+```
+
+The so-called QUnit test suite is an HTML page that triggers all QUnit tests for the application. Most of it is generating the layout of the result page that you can see in the preview and we won’t further explain these parts but focus on the application parts instead.
+
+Let’s start with the namespaces. Since we are now in the webapp/test/unit folder, we actually need to go up two levels to get the webapp folder again. This namespace can be used inside the tests to load and trigger application functionality.
+
+First, we load some basic QUnit functionality via script tags. Other QUnit tests can be added here as well. Then the HTML page loads another script called unitTests.qunit.js, which we will create next. This script will execute our formatter.
+
+`webapp/test/unit/unitTests.qunit.js (New)`
+```js
+QUnit.config.autostart = false;
+
+sap.ui.require(["sap/ui/core/Core"], async(Core) => {
+	"use strict";
+
+	await Core.ready();
+
+	sap.ui.require([
+		"ui5/walkthrough/test/unit/model/formatter"
+	], () => {
+		QUnit.start();
+	});
+});
+```
+
+This script loads and executes our formatter. If we now open the webapp/test/unit/unitTests.qunit.html file in the browser, we should see our test running and verifying the formatter logic.
+
+#### Conventions
+- All unit tests are placed in the webapp/test/unit folder of the app.
+- Files in the test suite end with *.qunit.html.
+- The unitTests.qunit.html file triggers all unit tests of the app.
+- A unit test should be written for formatters, controller logic, and other individual functionality.
+- All dependencies are replaced by stubs to test only the functionality in scope.
 
