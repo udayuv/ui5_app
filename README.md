@@ -2903,3 +2903,112 @@ In the contentDensities section of the sap.ui5 namespace, we have to specify the
 
 As we have just enabled the app to run in both modes depending on the devices capabilities, we can set both to true in the application descriptor.
 
+## Step 37: Accessibility
+
+In this step we're going to improve the accessibility of our app.
+
+To achieve this, we will add ARIA attributes. ARIA attributes are used by screen readers to recognize the application structure and to interpret UI elements properly. That way, we can make our app more accessible for users who are limited in their use of computers, for example visually impaired persons. The main goal here is to make our app usable for as many people as we can.
+
+**Tip**
+ARIA is short for Accessible Rich Internet Applications. It is a set of attributes that enable us to make apps more accessible by assigning semantic characteristics to certain elements. For more information, see [Accessible Rich Internet Applications (ARIA) – Part 1: Introduction](http://help.sap.com/disclaimer?site=https://blogs.sap.com/2015/06/01/accessible-rich-internet-applications-aria-part-1-introduction/)
+
+One part of the ARIA attribute set are the so-called landmarks. You can compare landmarks to maps in that they help the user navigate through an app. For this step, we will use Google Chrome with a free landmark navigation extensionInformation published on non SAP site We will now add meaningful landmarks to our code.
+
+`webapp/view/Overview.view.xml`
+```xml
+<mvc:View
+	controllerName="ui5.walkthrough.controller.App"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	displayBlock="true">
+	<Page title="{i18n>homePageTitle}">
+		<landmarkInfo>
+			<PageAccessibleLandmarkInfo
+				rootRole="Region"
+				rootLabel="{i18n>Overview_rootLabel}"
+				contentRole="Main"
+				contentLabel="{i18n>Overview_contentLabel}"
+				headerRole="Banner"
+				headerLabel="{i18n>Overview_headerLabel}"/>
+		</landmarkInfo>
+		<content>
+			<mvc:XMLView viewName="ui5.walkthrough.view.HelloPanel"/>
+			<mvc:XMLView viewName="ui5.walkthrough.view.InvoiceList"/>
+		</content>
+	</Page>
+</mvc:View>
+```
+
+We use sap.m.PageAccessibleLandmarkInfo to define ARIA roles and labels for the overview page areas. For more information, see the API Reference: sap.m.PageAccessibleLandmarkInfo.
+
+`webapp/view/InvoiceList.view.xml`
+```xml
+<mvc:View
+	controllerName="ui5.walkthrough.controller.InvoiceList"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc">
+	<Panel accessibleRole="Region">
+		<headerToolbar>
+			<Toolbar>
+				<Title text="{i18n>invoiceListTitle}"/>
+				<ToolbarSpacer/>
+				<SearchField
+					width="50%"
+					search=".onFilterInvoices"/>
+			</Toolbar>
+		</headerToolbar>
+		<Table
+			id="invoiceList"
+			class="sapUiResponsiveMargin"
+			width="auto"
+			items="{
+				path : 'invoice>/Invoices',
+				sorter : {
+					path : 'ShipperName',
+					group : true
+				}
+			}">
+			<columns>
+				<Column
+					hAlign="End"
+					...
+			</columns>
+			...
+		</Table>
+	</Panel>
+</mvc:View>
+```
+
+We add an sap.m.Panel around the invoice list and move the toolbar from the table into the panel, so that the region can take the title of the toolbar as its own. This has the effect that it will now be a region in our landmarks.
+
+`webapp/view/HelloPanel.view.xml`
+```xml
+<mvc:View
+	controllerName="ui5.walkthrough.controller.HelloPanel"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc">
+	<Panel
+		headerText="{i18n>helloPanelTitle}"
+		class="sapUiResponsiveMargin"
+		width="auto"
+		expandable="{device>/system/phone}"
+		expanded="{= !${device>/system/phone} }"
+		accessibleRole="Region">	
+		…
+	</Panel>
+</mvc:View>
+```
+In this view, we already have a panel, so we just add the accessibleRole attribute.
+`webapp/i18n/i18n.properties`
+
+```json
+...
+#Overview Page
+Overview_rootLabel=Overview Page
+Overview_headerLabel=Header
+Overview_contentLabel=Page Content
+ratingTitle=Rate the Product
+...
+```
+
+Here, we add the text for the rating panel title and the labels for the ARIA regions to the text bundle.
