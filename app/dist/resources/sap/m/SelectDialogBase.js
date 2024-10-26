@@ -1,0 +1,7 @@
+/*!
+ * OpenUI5
+ * (c) Copyright 2009-2024 SAP SE or an SAP affiliate company.
+ * Licensed under the Apache License, Version 2.0 - see LICENSE.txt.
+ */
+sap.ui.define(["./library","sap/ui/core/Control","sap/ui/core/InvisibleText","sap/ui/core/Lib"],function(e,t,i,a){"use strict";var s=e.SelectDialogInitialFocus;var r=t.extend("sap.m.SelectDialogBase",{metadata:{library:"sap.m",abstract:true,properties:{initialFocus:{type:"sap.m.SelectDialogInitialFocus",group:"Behavior",defaultValue:s.List}},aggregations:{},events:{updateStarted:{parameters:{reason:{type:"string"},actual:{type:"int"},total:{type:"int"}}},updateFinished:{parameters:{reason:{type:"string"},actual:{type:"int"},total:{type:"int"}}},selectionChange:{parameters:{listItem:{type:"sap.m.ListItemBase"},listItems:{type:"sap.m.ListItemBase[]"},selected:{type:"boolean"},selectAll:{type:"boolean"}}}}},renderer:{apiVersion:2,render:function(){}}});r.getInvisibleText=function(){if(!this.oInvisibleText){this.oInvisibleText=new i({text:a.getResourceBundleFor("sap.m").getText("SELECTDIALOGBASE_LISTLABEL")}).toStatic()}return this.oInvisibleText};r.prototype._getInitialFocus=function(){switch(this.getInitialFocus()){case s.SearchField:return this._oSearchField;default:return this._oDialog.getContent()[1]}};return r});
+//# sourceMappingURL=SelectDialogBase.js.map
